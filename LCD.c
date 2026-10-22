@@ -1,0 +1,163 @@
+#include "LCD.h"
+
+
+
+void delay_ms(unsigned int ms) {
+	unsigned int i, j;
+	for (i = 0; i < ms; i++)
+	{
+		for (j = 0; j < 16000; j++);
+	}
+	
+}
+
+void delay_us(unsigned int us) {
+	unsigned int i, j;
+	for (i = 0; i < us; i++)
+	{
+		for (j = 0; j < 16; j++);	}
+	
+}
+
+
+
+void LCD_WriteCom(unsigned char com) {
+		
+	
+	 
+	GPIOB->ODR &= 0xFFFFFFFD;									//set RS to 0
+	
+	unsigned char com1, com2;
+	com1= (com&0xf0);
+	com2= (com&0x0f)<<4;
+	GPIOB->ODR &= 0xFFFFFFFB;									// set E = 0;
+	
+	// send upper command data (com1)
+	GPIOB->ODR &= 0xFFFFFF87;
+	GPIOB->ODR |= (com1>>1);
+	
+	Pulse();
+	
+	// send lower command data (com2)
+	GPIOB->ODR &= 0xFFFFFF87;
+	GPIOB->ODR |= (com2>>1);
+	
+	Pulse();
+	
+	
+	
+									
+}
+void LCD_WriteData(unsigned char dat) {
+	GPIOB->ODR |= 0x00000002;	//Set RS back to 1
+	unsigned char dat1, dat2;
+	dat1= (dat&0xf0);
+	dat2= (dat&0x0f)<<4;
+	GPIOB->ODR &= 0xFFFFFFFB;									// set E = 0;
+	
+	
+	// send upper info data (dat1)
+	GPIOB->ODR &= 0xFFFFFF87;
+	GPIOB->ODR |= (dat1>>1);
+	
+	
+	Pulse();
+	
+	
+	// send lower info data (dat2)
+	GPIOB->ODR &= 0xFFFFFF87;
+	GPIOB->ODR |= (dat2>>1);
+	
+	
+	Pulse();
+}
+void LCD_Init(void){
+
+	
+	// Enable the HSI clock
+	RCC ->CR  |= RCC_CR_HSION;
+	//check when clock is ready
+	while((RCC->CR & RCC_CR_HSIRDY) == 0);
+	
+	//set GPIOB clock on
+	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
+	
+	// switch to HSI clock
+	RCC->CFGR &= ~RCC_CFGR_SW;
+	RCC->CFGR |= RCC_CFGR_SW_HSI;
+
+	//make sure we are using HSI clock 
+	while((RCC->CFGR & RCC_CFGR_SWS_HSI) == 0);
+	
+	//Set    PB1 to PB10 as outputs, PB11 to PB14 as input
+	GPIOB->MODER &= 0xC0055553;
+	GPIOB->MODER |= 0x00155554;
+	
+	//Set Rows on keypad as open drain
+	GPIOB->OTYPER |= 0x00000780;
+	
+	
+	// Display initialization
+	LCD_WriteCom(0x28);  //put into 4-bit mode
+	LCD_WriteCom(0x0c); //display switch
+	LCD_WriteCom(0x06); // input mode Style setting
+	LCD_WriteCom(0x01); //clear
+	LCD_WriteCom(0x40); // reset adress to start
+	
+	
+	delay_ms(50);
+
+}void LCD_Clear(void){
+	LCD_WriteCom(0x01); //clear
+	delay_ms(1);
+}
+
+
+
+
+
+void LCD_DisplayChar(int loc,unsigned char val) {
+	
+	if(loc < 16)
+	{
+		LCD_WriteCom(0x80);//set to line 1
+		LCD_WriteData(val);
+	}else
+	{
+		LCD_WriteCom(0xc0);
+		LCD_WriteData(val);
+	}
+}
+
+void Pulse()
+{
+	GPIOB->ODR |= 0x00000004;									//set E=1;
+	delay_us(40);
+	GPIOB->ODR &= 0xFFFFFFFB;									////set E=0;
+	delay_us(40);
+}
+
+
+	
+	/*
+uint32_t getPin(GPIO_TypeDef * port, uint32_t pin){
+	uint32_t temp >> pin;					//Shift the value over by the value of that pin
+	temp &= 0x00000001;						//mask to only read that pin
+	return temp;									//return the value of that pin
+	
+}
+
+
+
+void setPin(GPIO_TypeDef * port, uint32_t pin, uint32_t value){
+	uint32_t temp = port->ODR;
+	uint32_t mask = 1 << pin;
+	if (value){										//if we're setting it too high
+		temp 1 = mask;
+	}
+	else{													//if we're setting to to low
+		temp &= ~mask;
+	}
+	port->ODR = temp;
+}
+*/
