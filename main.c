@@ -13,9 +13,6 @@ int main(void){
 	//set all rows initially to 1(which sets them to high impedenace mode);
 	GPIOB->ODR |= (0xF<<7);
 	
-	////TESTING
-	LCD_WriteData('2');
-	//LCD_DisplayChar(loc,values[0][1]);
 		
 		
 		
@@ -26,7 +23,7 @@ int main(void){
 		{
 				//set row to 0
 				GPIOB->ODR &= ~(1u << (7 + r) );
-				delay_ms(40);
+				//delay_ms(40);
 				
 				for(int c = 0; c<4;c++)
 				{
@@ -45,7 +42,7 @@ int main(void){
 						case 3:
 							input  = ((GPIOB -> IDR >> 14) & 1u);//pin 14
 					}
-						delay_ms(40);
+						//delay_ms(40);
 					
 					
 					//state 0

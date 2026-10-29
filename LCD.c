@@ -118,15 +118,14 @@ void LCD_Init(void){
 
 void LCD_DisplayChar(int loc,unsigned char val) {
 	
-	if(loc < 16)
-	{
-		LCD_WriteCom(0x80);//set to line 1
-		LCD_WriteData(val);
-	}else
+	if(loc == 16)
 	{
 		LCD_WriteCom(0xc0);
-		LCD_WriteData(val);
 	}
+
+		
+		LCD_WriteData(val);
+	
 }
 
 void Pulse()
